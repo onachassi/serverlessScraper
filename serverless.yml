@@ -1,4 +1,6 @@
 service: yelp-scraper
+plugins:
+  - serverless-offline-scheduler
 provider:
   name: aws
   runtime: nodejs8.10
@@ -6,7 +8,12 @@ provider:
   stage: dev
   environment:
     DYNAMODB_TABLE: yelp-ratings
+    LAMBDA_FUNCTION: yelp-scraper-dev-scrape
   iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "lambda:InvokeFunction"
+      Resource: "arn:aws:lambda:${opt:region, self:provider.region}:*:function/${self:provider.environment.LAMBDA_FUNCTION}"
     - Effect: Allow
       Action:
         - dynamodb:Query
@@ -22,4 +29,10 @@ package:
 functions:
   scrape:
     handler: handler.scrape
+
+  launch_scrapers:
+    handler: handler.launch_scrapers
+    ####Uncomment the lines below to enable the cron jobs
+    # events:
+    #   - schedule: rate(1 minute)
 
